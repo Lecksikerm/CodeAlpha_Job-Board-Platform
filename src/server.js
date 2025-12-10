@@ -12,6 +12,7 @@ const jobRoutes = require('./routes/jobs/jobRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const jobApplicationRoutes = require('./routes/jobs/jobApplicationRoutes');
 const applicationStatusRoutes = require('./routes/jobs/applicationStatusRoutes');
+const applicationTrackingRoutes = require('./routes/applications/applicationTrackingRoutes');
 
 
 
@@ -40,6 +41,9 @@ app.use('/api/applications', jobApplicationRoutes);
 
 // Job Application Status Routes
 app.use('/api/applications', applicationStatusRoutes);
+
+// Application Tracking Routes
+app.use('/api/applications', applicationTrackingRoutes);
 
 // Root Route
 app.get('/', (req, res) => res.send('Job Board Platform is running'));

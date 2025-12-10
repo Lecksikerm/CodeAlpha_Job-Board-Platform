@@ -6,9 +6,10 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 const healthRoute = require('./routes/health');
 
-// Import Auth Routes
 const employerAuthRoutes = require('./routes/auth/employerAuth');
 const candidateAuthRoutes = require('./routes/auth/candidateAuth');
+const jobRoutes = require('./routes/jobs/jobRoutes');
+
 
 const app = express();
 
@@ -23,6 +24,9 @@ app.use('/api/health', healthRoute);
 // Auth Routes
 app.use('/api/auth/employer', employerAuthRoutes);
 app.use('/api/auth/candidate', candidateAuthRoutes);
+
+// Job Routes
+app.use('/api/jobs', jobRoutes)
 
 // Root Route
 app.get('/', (req, res) => res.send('Job Board Platform is running'));

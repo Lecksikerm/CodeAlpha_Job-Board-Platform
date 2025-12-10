@@ -9,6 +9,7 @@ const healthRoute = require('./routes/health');
 const employerAuthRoutes = require('./routes/auth/employerAuth');
 const candidateAuthRoutes = require('./routes/auth/candidateAuth');
 const jobRoutes = require('./routes/jobs/jobRoutes');
+const resumeRoutes = require('./routes/resumeRoutes');
 
 
 const app = express();
@@ -26,7 +27,10 @@ app.use('/api/auth/employer', employerAuthRoutes);
 app.use('/api/auth/candidate', candidateAuthRoutes);
 
 // Job Routes
-app.use('/api/jobs', jobRoutes)
+app.use('/api/jobs', jobRoutes);
+
+// Resume Routes
+app.use('/api/resumes', resumeRoutes);
 
 // Root Route
 app.get('/', (req, res) => res.send('Job Board Platform is running'));

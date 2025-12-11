@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Notification Test</title>
+</head>
+<body>
+    <h1>Socket.IO Notification Test</h1>
+
+    <ul id="log"></ul>
+
+    <!-- IMPORTANT: Load socket.io from your backend -->
+    <script src="http://localhost:5000/socket.io/socket.io.js"></script>
+
+    <script>
+        const log = (msg) => {
+            const li = document.createElement("li");
+            li.textContent = msg;
+            document.getElementById("log").appendChild(li);
+        };
+
+        // Connect to backend
+        const socket = io("http://localhost:5000");
+
+        socket.on("connect", () => {
+            log("Connected to server with ID: " + socket.id);
+
+            const employerId = prompt("Enter employerId:");
+
+            // Join employer room
+            socket.emit("join", employerId);
+            log("Joining room: " + employerId);
+        });
+
+        // Listen for notifications
+        socket.on("new_notification", (data) => {
+            console.log("New Notification:", data);
+            log("New Notification: " + data.message);
+            alert("New application: " + data.message);
+        });
+    </script>
+</body>
+</html>
+
+
+

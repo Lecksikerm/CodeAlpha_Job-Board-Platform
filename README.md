@@ -95,6 +95,13 @@ PORT=5000
 MONGO_URI=mongodb+srv://<username>:<password>@cluster0.vbizevy.mongodb.net/job-board-db?retryWrites=true&w=majority&appName=Cluster0
 JWT_SECRET=********
 
+----
+
+* Deployment Link 
+https://job-board-platform-3s4b.onrender.com
+
+----
+
 
 API Endpoints
 Auth
@@ -145,7 +152,7 @@ Frontend Example:
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
-const socket = io('http://localhost:5000');
+const socket = io('https://job-board-platform-3s4b.onrender.com');
 const employerId = '<EMPLOYER_ID>';
 socket.emit('join', employerId);
 

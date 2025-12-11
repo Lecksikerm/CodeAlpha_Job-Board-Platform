@@ -20,7 +20,7 @@
         };
 
         // Connect to backend
-        const socket = io("http://localhost:5000");
+        const socket = io("https://job-board-platform-3s4b.onrender.com");
 
         socket.on("connect", () => {
             log("Connected to server with ID: " + socket.id);

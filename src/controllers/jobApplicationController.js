@@ -89,9 +89,9 @@ exports.updateApplicationStatus = async (req, res) => {
             return res.status(404).json({ message: 'Job not found for this application' });
         }
 
-        if (job.employerId.toString() !== employerId) {
+        if (job.employerId.toString() !== employerId && !req.user.isAdmin) {
             return res.status(403).json({
-                message: 'Unauthorized: You can only update applications for your own job postings'
+                message: 'Unauthorized: You can only update applications for your own job postings or you must be an admin'
             });
         }
 

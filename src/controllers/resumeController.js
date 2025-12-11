@@ -1,5 +1,11 @@
 const Resume = require('../models/Resume');
-const path = require('path');
+const cloudinary = require('cloudinary').v2;
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
 
 exports.uploadResume = async (req, res) => {
     try {
@@ -7,14 +13,17 @@ exports.uploadResume = async (req, res) => {
 
         const resume = new Resume({
             candidateId: req.user.id,
-            fileUrl: req.file.path,
-            originalName: req.file.originalname
+            fileURL: req.file.path, 
+            fileName: req.file.originalname,
+            fileType: req.file.mimetype
         });
 
         await resume.save();
-        res.status(201).json({ message: 'Resume uploaded successfully', resume });
+        return res.status(201).json({ message: 'Resume uploaded successfully', resume });
+
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error' });
     }
 };
+

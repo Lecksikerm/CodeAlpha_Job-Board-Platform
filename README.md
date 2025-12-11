@@ -73,7 +73,7 @@ Layer	Technology
 Backend	Node.js, Express.js
 Database	MongoDB, Mongoose
 Authentication	JWT (JSON Web Tokens)
-File Uploads	Multer
+File Uploads	Multer with Cloudinary
 Real-Time	Socket.IO
 Deployment	Render / Optional: Vercel, Netlify for frontend
 Getting Started

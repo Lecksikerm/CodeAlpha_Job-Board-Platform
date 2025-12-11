@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../../middleware/auth');
+const authCandidate = require('../../middleware/authCandidate');
 const applicationTrackingController = require('../../controllers/applicationTrackingController');
 
 
-router.get('/my', auth, applicationTrackingController.getMyApplications);
+router.get('/my', authCandidate, applicationTrackingController.getMyApplications);
 
 module.exports = router;

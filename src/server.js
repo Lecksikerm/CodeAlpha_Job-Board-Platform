@@ -16,6 +16,7 @@ const jobApplicationRoutes = require('./routes/jobs/jobApplicationRoutes');
 const applicationStatusRoutes = require('./routes/jobs/applicationStatusRoutes');
 const applicationTrackingRoutes = require('./routes/applications/applicationTrackingRoutes');
 const notificationRoutes = require('./routes/notifications/notificationRoutes');
+const adminRoutes = require('./routes/admin/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -38,6 +39,7 @@ app.use('/api/applications', jobApplicationRoutes);
 app.use('/api/applications', applicationStatusRoutes);
 app.use('/api/applications', applicationTrackingRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Root
 app.get('/', (req, res) => res.send('Job Board Platform is running'));

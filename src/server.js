@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 5000;
 
 app.set('trust proxy', true);
 
-// CORS first
+// CORS
 app.use(cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -34,21 +34,28 @@ app.use(cors({
 // Logger
 app.use(morgan('dev'));
 
-// Test Cloudinary config on startup
+// Test Cloudinary config
 const cloudinary = require('cloudinary').v2;
-console.log('Cloudinary config check:', {
+console.log('Cloudinary config:', {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING',
     api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'MISSING',
     api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING'
 });
 
-app.use('/api/resumes', resumeRoutes);
+// DEBUG: Log resume route registration
+console.log('About to register /api/resumes');
+app.use('/api/resumes', (req, res, next) => {
+    console.log('Resume route accessed:', req.method, req.path);
+    console.log('Content-Type:', req.headers['content-type']);
+    next();
+}, resumeRoutes);
+console.log('/api/resumes registered');
 
-// Now add JSON body parser for all other routes
+// JSON parser AFTER resume routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Other API Routes
+// Other routes
 app.use('/api/health', healthRoute);
 app.use('/api/auth/employer', employerAuthRoutes);
 app.use('/api/auth/candidate', candidateAuthRoutes);
@@ -59,61 +66,46 @@ app.use('/api/applications', applicationTrackingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Serve static files
+// Static files
 app.use(express.static('src/public'));
 
-// Health check
 app.get('/', (req, res) => {
     res.send("Job Board Platform API is running successfully");
 });
 
-// Global error handler
+// Error handler
 app.use((err, req, res, next) => {
-    console.error('Global error:', err);
+    console.error('Global error:', err.message);
     res.status(err.status || 500).json({
-        message: err.message || 'Internal server error',
-        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+        message: err.message || 'Internal server error'
     });
 });
 
-// HTTP Server + Socket.IO
+// Socket.IO setup
 const server = http.createServer(app);
-
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+    cors: { origin: "*", methods: ["GET", "POST"] }
 });
 
-// SOCKET.IO — Real-time communication
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
-
     socket.on('join_room', (userId) => {
         socket.join(userId);
-        console.log(`User ${userId} joined room`);
-    });
-
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
+        console.log(`User ${userId} joined`);
     });
 });
 
-// Expose io to controllers
 app.set('io', io);
 
-// Start Server
+
+// Start
 (async () => {
     try {
         await connectDB();
-        console.log('Database connected successfully');
-
-        server.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
+        console.log('Database connected');
+        server.listen(PORT, () => console.log(`Server on port ${PORT}`));
     } catch (err) {
-        console.error('Failed to start server:', err);
+        console.error('Failed to start:', err);
         process.exit(1);
     }
 })();

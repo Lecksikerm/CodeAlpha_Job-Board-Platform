@@ -1,19 +1,33 @@
 const Resume = require('../models/Resume');
 
-// Upload resume (Cloudinary handles the upload via multer middleware)
+// Upload resume
 exports.uploadResume = async (req, res) => {
     try {
-        console.log('Upload request from user:', req.user?.id);
-        console.log('File received:', req.file ? 'YES' : 'NO');
+        console.log('=== UPLOAD CONTROLLER ===');
+        console.log('1. User ID:', req.user?.id);
+        console.log('2. Content-Type:', req.headers['content-type']);
+        console.log('3. req.file exists:', !!req.file);
+        console.log('4. req.body:', req.body);
 
         if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
+            console.log('ERROR: req.file is undefined!');
+            console.log('req.files (array):', req.files);
+            return res.status(400).json({
+                message: 'No file uploaded',
+                debug: {
+                    contentType: req.headers['content-type'],
+                    hasFile: !!req.file,
+                    bodyKeys: Object.keys(req.body)
+                }
+            });
         }
 
-        console.log('File details:', {
+        console.log('5. File details:', {
             path: req.file.path,
+            filename: req.file.filename,
             originalname: req.file.originalname,
-            mimetype: req.file.mimetype
+            mimetype: req.file.mimetype,
+            size: req.file.size
         });
 
         const resume = new Resume({
@@ -24,7 +38,7 @@ exports.uploadResume = async (req, res) => {
         });
 
         await resume.save();
-        console.log('Resume saved with ID:', resume._id);
+        console.log('6. Resume saved:', resume._id);
 
         return res.status(201).json({
             message: 'Resume uploaded successfully',
@@ -32,12 +46,15 @@ exports.uploadResume = async (req, res) => {
         });
 
     } catch (err) {
-        console.error('Upload error:', err);
-        res.status(500).json({ message: 'Server error: ' + err.message });
+        console.error('Upload controller error:', err);
+        res.status(500).json({
+            message: 'Server error: ' + err.message,
+            stack: err.stack
+        });
     }
 };
 
-// Get all resumes for logged-in candidate
+// Get all resumes
 exports.getMyResumes = async (req, res) => {
     try {
         const resumes = await Resume.find({ candidateId: req.user.id })

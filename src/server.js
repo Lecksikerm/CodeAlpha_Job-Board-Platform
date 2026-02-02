@@ -24,33 +24,56 @@ const PORT = process.env.PORT || 5000;
 
 app.set('trust proxy', true);
 
+// CORS first
 app.use(cors({
-    origin: "*",          
+    origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true
 }));
 
-app.use(express.json());
+// Logger
 app.use(morgan('dev'));
 
-// Serve static test files (notification test)
-app.use(express.static('src/public'));
+// Test Cloudinary config on startup
+const cloudinary = require('cloudinary').v2;
+console.log('Cloudinary config check:', {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING',
+    api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'MISSING',
+    api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING'
+});
 
-// API Routes
+app.use('/api/resumes', resumeRoutes);
+
+// Now add JSON body parser for all other routes
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Other API Routes
 app.use('/api/health', healthRoute);
 app.use('/api/auth/employer', employerAuthRoutes);
 app.use('/api/auth/candidate', candidateAuthRoutes);
 app.use('/api/jobs', jobRoutes);
-app.use('/api/resumes', resumeRoutes);
 app.use('/api/applications', jobApplicationRoutes);
 app.use('/api/applications', applicationStatusRoutes);
 app.use('/api/applications', applicationTrackingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Serve static files
+app.use(express.static('src/public'));
 
+// Health check
 app.get('/', (req, res) => {
     res.send("Job Board Platform API is running successfully");
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error('Global error:', err);
+    res.status(err.status || 500).json({
+        message: err.message || 'Internal server error',
+        ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    });
 });
 
 // HTTP Server + Socket.IO
@@ -58,7 +81,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "*",        
+        origin: "*",
         methods: ["GET", "POST"]
     }
 });
@@ -67,10 +90,9 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
-    // Employer joins specific room
-    socket.on('join', (employerId) => {
-        socket.join(employerId);
-        console.log(`Employer ${employerId} joined notifications`);
+    socket.on('join_room', (userId) => {
+        socket.join(userId);
+        console.log(`User ${userId} joined room`);
     });
 
     socket.on('disconnect', () => {
@@ -81,14 +103,19 @@ io.on('connection', (socket) => {
 // Expose io to controllers
 app.set('io', io);
 
-
 // Start Server
 (async () => {
-    await connectDB();
+    try {
+        await connectDB();
+        console.log('Database connected successfully');
 
-    server.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
+        server.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
 })();
 
 

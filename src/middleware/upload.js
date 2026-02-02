@@ -18,7 +18,26 @@ const storage = new CloudinaryStorage({
     },
 });
 
-const upload = multer({ storage });
+const upload = multer({
+    storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024, 
+        files: 1
+    },
+    fileFilter: (req, file, cb) => {
+        console.log('Multer received file:', file.originalname, file.mimetype);
+        const allowedTypes = [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        ];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error(`Invalid file type: ${file.mimetype}. Only PDF and Word allowed.`), false);
+        }
+    }
+});
 
 module.exports = upload;
 

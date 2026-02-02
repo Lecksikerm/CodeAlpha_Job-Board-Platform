@@ -12,7 +12,20 @@ const handleMulterError = (error, req, res, next) => {
     next();
 };
 
-router.post('/', authCandidate, upload.single('resume'), handleMulterError, resumeController.uploadResume);
+// POST /api/resumes - Upload new resume
+router.post(
+    '/',
+    authCandidate,
+    upload.single('resume'),
+    handleMulterError,
+    resumeController.uploadResume
+);
+
+// GET /api/resumes/my - Get all resumes for logged-in candidate
+router.get('/my', authCandidate, resumeController.getMyResumes);
+
+// DELETE /api/resumes/:id - Delete a resume
+router.delete('/:id', authCandidate, resumeController.deleteResume);
 
 module.exports = router;
 

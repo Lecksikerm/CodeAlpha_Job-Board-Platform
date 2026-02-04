@@ -30,10 +30,8 @@ exports.createJob = async (req, res) => {
     }
 };
 
-
 exports.getAllJobs = async (req, res) => {
     try {
-
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
@@ -81,15 +79,51 @@ exports.getJobById = async (req, res) => {
     }
 };
 
+exports.getMyJobs = async (req, res) => {
+    try {
+        const employerId = req.user.id;
+
+        console.log('Fetching jobs for employer:', employerId);
+
+        const jobs = await JobListing.find({ employerId })
+            .sort({ createdAt: -1 });
+
+        console.log(`Found ${jobs.length} jobs`);
+
+        res.json({
+            jobs,
+            count: jobs.length
+        });
+
+    } catch (err) {
+        console.error('Error in getMyJobs:', err);
+        res.status(500).json({
+            message: 'Server error',
+            error: err.message
+        });
+    }
+};
+
 exports.updateJob = async (req, res) => {
     try {
         const employerId = req.user.id;
         const jobId = req.params.id;
 
-        const job = await JobListing.findById(jobId);
-        if (!job) return res.status(404).json({ message: 'Job not found' });
+        console.log('Update attempt:', { employerId, jobId });
 
-        if (job.employerId.toString() !== employerId) {
+        const job = await JobListing.findById(jobId);
+        if (!job) {
+            console.log('Job not found');
+            return res.status(404).json({ message: 'Job not found' });
+        }
+
+        console.log('Comparing IDs:', {
+            jobEmployerId: job.employerId.toString(),
+            requestUserId: employerId.toString()
+        });
+
+        if (job.employerId.toString() !== employerId.toString()) {
+            console.log('Unauthorized: IDs do not match');
             return res.status(403).json({ message: 'Unauthorized: Cannot update this job' });
         }
 
@@ -103,11 +137,12 @@ exports.updateJob = async (req, res) => {
         if (requirements) job.requirements = requirements;
 
         await job.save();
+        console.log('Job updated successfully');
 
         res.json({ message: 'Job updated successfully', job });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Server error' });
+        console.error('Update job error:', err);
+        res.status(500).json({ message: 'Server error: ' + err.message });
     }
 };
 
@@ -119,15 +154,15 @@ exports.deleteJob = async (req, res) => {
         const job = await JobListing.findById(jobId);
         if (!job) return res.status(404).json({ message: 'Job not found' });
 
-        if (job.employerId.toString() !== employerId) {
+        
+        if (job.employerId.toString() !== employerId.toString()) {
             return res.status(403).json({ message: 'Unauthorized: Cannot delete this job' });
         }
 
         await job.deleteOne();
-
         res.json({ message: 'Job deleted successfully' });
     } catch (err) {
-        console.error(err);
+        console.error('Delete job error:', err);
         res.status(500).json({ message: 'Server error' });
     }
 };

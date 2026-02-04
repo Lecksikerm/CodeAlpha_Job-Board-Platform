@@ -17,6 +17,7 @@ const applicationStatusRoutes = require('./routes/jobs/applicationStatusRoutes')
 const applicationTrackingRoutes = require('./routes/applications/applicationTrackingRoutes');
 const notificationRoutes = require('./routes/notifications/notificationRoutes');
 const adminRoutes = require('./routes/admin/adminRoutes');
+const employerApplicationRoutes = require('./routes/employer/employerApplicationRoutes');
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use('/api/applications', applicationStatusRoutes);
 app.use('/api/applications', applicationTrackingRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/employer/applications', employerApplicationRoutes);
 
 // Static files
 app.use(express.static('src/public'));

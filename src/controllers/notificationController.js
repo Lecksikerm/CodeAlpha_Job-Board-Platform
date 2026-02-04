@@ -2,49 +2,40 @@ const Notification = require('../models/Notification');
 
 exports.getNotifications = async (req, res) => {
     try {
-        const employerId = req.user.id;
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const userId = req.user.id;
 
-        const notifications = await Notification.find({ employer: employerId })
+        const notifications = await Notification.find({ employer: userId })
             .sort({ createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit);
+            .limit(50);
 
-        const total = await Notification.countDocuments({ employer: employerId });
-
-        return res.status(200).json({
-            status: 'success',
-            total,
-            page,
-            results: notifications.length,
-            notifications
+        res.json({
+            notifications,
+            unreadCount: notifications.filter(n => !n.isRead).length
         });
 
     } catch (err) {
         console.error('Error getting notifications:', err);
-        return res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
 exports.markAsRead = async (req, res) => {
     try {
-        const notificationId = req.params.id;
-
-        const updated = await Notification.findByIdAndUpdate(
-            notificationId,
+        const notification = await Notification.findOneAndUpdate(
+            { _id: req.params.id, employer: req.user.id },
             { isRead: true },
             { new: true }
         );
 
-        return res.status(200).json({
-            status: 'success',
-            notification: updated
-        });
+        if (!notification) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+
+        res.json(notification);
 
     } catch (err) {
         console.error('Error marking notification as read:', err);
-        return res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 

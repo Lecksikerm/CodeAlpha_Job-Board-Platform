@@ -3,12 +3,11 @@ const JobListing = require('../models/JobListing');
 const Resume = require('../models/Resume');
 const Notification = require('../models/Notification');
 
-
 // APPLY TO JOB
 exports.applyToJob = async (req, res) => {
     try {
         const candidateId = req.user.id;
-        const { jobId, resumeId } = req.body;
+        const { jobId, resumeId, coverLetter } = req.body;
 
         // Get Socket.IO instance from app
         const io = req.app.get('io');
@@ -25,11 +24,12 @@ exports.applyToJob = async (req, res) => {
         const existing = await JobApplication.findOne({ jobId, candidateId });
         if (existing) return res.status(400).json({ message: 'You already applied to this job' });
 
-        // Create job application
+        
         const application = new JobApplication({
             jobId,
             candidateId,
-            resumeId
+            resumeURL: resume.fileURL, 
+            coverLetter: coverLetter || ''
         });
 
         await application.save();
@@ -43,7 +43,6 @@ exports.applyToJob = async (req, res) => {
         });
 
         // SEND REAL-TIME NOTIFICATION
-        // Employer receives it in room = employerId
         io.to(job.employerId.toString()).emit('new_notification', {
             message: `New application for ${job.title}`,
             jobId,

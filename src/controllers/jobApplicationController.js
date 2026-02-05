@@ -24,11 +24,11 @@ exports.applyToJob = async (req, res) => {
         const existing = await JobApplication.findOne({ jobId, candidateId });
         if (existing) return res.status(400).json({ message: 'You already applied to this job' });
 
-        
+
         const application = new JobApplication({
             jobId,
             candidateId,
-            resumeURL: resume.fileURL, 
+            resumeURL: resume.fileURL,
             coverLetter: coverLetter || ''
         });
 
@@ -65,14 +65,15 @@ exports.applyToJob = async (req, res) => {
 // UPDATE APPLICATION STATUS (Employer only)
 exports.updateApplicationStatus = async (req, res) => {
     try {
-        const employerId = req.user.id;
+        const employerId = req.user.id; 
         const applicationId = req.params.id;
         const { status } = req.body;
 
-        const allowedStatuses = [
-            "applied", "reviewed", "shortlisted", "accepted", "rejected"
-        ];
+        console.log('=== UPDATE STATUS ===');
+        console.log('employerId:', employerId, 'type:', typeof employerId);
+        console.log('isAdmin:', req.user.isAdmin);
 
+        const allowedStatuses = ["applied", "reviewed", "shortlisted", "accepted", "rejected"];
         if (!allowedStatuses.includes(status)) {
             return res.status(400).json({ message: 'Invalid status value' });
         }
@@ -82,15 +83,21 @@ exports.updateApplicationStatus = async (req, res) => {
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        // Check if employer owns the job
         const job = await JobListing.findById(application.jobId);
         if (!job) {
             return res.status(404).json({ message: 'Job not found for this application' });
         }
 
-        if (job.employerId.toString() !== employerId && !req.user.isAdmin) {
+        const jobEmployerId = job.employerId.toString();
+        const isOwner = jobEmployerId === employerId;
+        const isAdmin = req.user.isAdmin === true;
+
+        console.log('jobEmployerId:', jobEmployerId);
+        console.log('isOwner:', isOwner, 'isAdmin:', isAdmin);
+
+        if (!isOwner && !isAdmin) {
             return res.status(403).json({
-                message: 'Unauthorized: You can only update applications for your own job postings or you must be an admin'
+                message: 'Unauthorized: You can only update applications for your own job postings'
             });
         }
 
@@ -107,5 +114,3 @@ exports.updateApplicationStatus = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-
-

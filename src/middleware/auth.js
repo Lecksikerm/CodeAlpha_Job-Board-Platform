@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const Employer = require('../models/Employer');
+const Candidate = require('../models/Candidate');
 
 module.exports = async function (req, res, next) {
     const authHeader = req.header('Authorization');
@@ -11,20 +12,37 @@ module.exports = async function (req, res, next) {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        
+        console.log('Token decoded:', decoded);
 
-        // Fetch full employer info from DB
-        const employer = await Employer.findById(decoded.id);
-        if (!employer) return res.status(401).json({ message: 'User not found' });
+        let user = null;
+        let role = decoded.role;
 
+        // Try to find user based on role in token
+        if (role === 'employer') {
+            user = await Employer.findById(decoded.id);
+        } else if (role === 'candidate') {
+            user = await Candidate.findById(decoded.id);
+        }
+
+        if (!user) {
+            return res.status(401).json({ message: 'User not found' });
+        }
+
+        
         req.user = { 
-            id: employer._id,
-            isAdmin: employer.isAdmin,
-            role: employer.role
+            id: user._id.toString(),  
+            isAdmin: user.isAdmin || false,
+            role: role
         };
+
+        
+        console.log('req.user set:', req.user);
 
         next();
     } catch (err) {
-        console.error(err);
+        console.error('Auth error:', err);
         res.status(401).json({ message: 'Token is not valid' });
     }
 };

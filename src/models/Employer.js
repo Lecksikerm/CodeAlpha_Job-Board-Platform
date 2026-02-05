@@ -10,7 +10,7 @@ const EmployerSchema = new mongoose.Schema(
         industry: { type: String },
         location: { type: String },
         role: { type: String, default: "employer" },
-        isAdmin: { type: Boolean, default: true }
+        isAdmin: { type: Boolean, default: false }
     },
     { timestamps: true }
 );

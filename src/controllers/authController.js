@@ -6,7 +6,11 @@ const Candidate = require('../models/Candidate');
 
 const generateToken = (user) => {
     return jwt.sign(
-        { id: user._id, role: user.role },
+        {
+            id: user._id,
+            role: user.role,
+            isAdmin: user.isAdmin || false  // ADD THIS
+        },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
     );
@@ -32,7 +36,8 @@ module.exports = {
                 name,
                 companyName,
                 email,
-                password: hashed
+                password: hashed,
+                isAdmin: false  // Explicitly set to false
             });
 
             return res.status(201).json({
@@ -90,7 +95,8 @@ module.exports = {
 
             return res.json({
                 message: "Login successful",
-                token: generateToken(employer)
+                token: generateToken(employer),
+                isAdmin: employer.isAdmin  
             });
         } catch (error) {
             return res.status(500).json({ message: error.message });

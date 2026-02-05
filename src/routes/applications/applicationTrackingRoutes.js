@@ -5,5 +5,6 @@ const applicationTrackingController = require('../../controllers/applicationTrac
 
 
 router.get('/my', authCandidate, applicationTrackingController.getMyApplications);
+router.get('/my/:id', authCandidate, applicationTrackingController.getApplicationById);
 
 module.exports = router;

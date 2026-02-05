@@ -11,7 +11,7 @@ exports.getMyApplications = async (req, res) => {
                 select: 'title companyName location jobType description salary createdAt',
                 populate: {
                     path: 'employerId',
-                    select: 'companyName logo' 
+                    select: 'companyName logo'
                 }
             })
             .sort({ createdAt: -1 });
@@ -45,6 +45,58 @@ exports.getMyApplications = async (req, res) => {
         return res.status(500).json({
             status: 'error',
             message: 'Server error fetching applications'
+        });
+    }
+};
+
+exports.getApplicationById = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { id } = req.params;
+
+        const application = await JobApplication.findOne({
+            _id: id,
+            candidateId: userId
+        }).populate({
+            path: 'jobId',
+            select: 'title companyName location jobType description salary createdAt'
+        });
+
+        if (!application) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Application not found'
+            });
+        }
+
+        const formattedApplication = {
+            _id: application._id,
+            status: application.status,
+            coverLetter: application.coverLetter,
+            resumeURL: application.resumeURL,
+            appliedAt: application.createdAt,
+            job: {
+                _id: application.jobId?._id,
+                title: application.jobId?.title,
+                company: application.jobId?.companyName,
+                location: application.jobId?.location,
+                type: application.jobId?.jobType,
+                description: application.jobId?.description,
+                salary: application.jobId?.salary,
+                postedAt: application.jobId?.createdAt
+            }
+        };
+
+        return res.status(200).json({
+            status: 'success',
+            application: formattedApplication
+        });
+
+    } catch (err) {
+        console.error('Error getting application:', err);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Server error fetching application'
         });
     }
 };
